@@ -42,6 +42,28 @@ pub enum ReadWriteRequestMessageMode {
     Mail
 }
 
+impl ReadWriteRequestMessageMode {
+    fn to_string(mode: Self) -> String {
+        match mode {
+            ReadWriteRequestMessageMode::NetAscii => "netascii".to_string(),
+            ReadWriteRequestMessageMode::Octet => "octet".to_string(),
+            ReadWriteRequestMessageMode::Mail => "mail".to_string()
+        }
+    }
+
+    fn from_string(mode_string: String) ->
+    Option<Self> {
+        match mode_string.as_str() {
+            "netascii" | "NETASCII" | "NetAscii" =>
+                Some(ReadWriteRequestMessageMode::NetAscii),
+            "octet" | "OCTET" | "Octet" =>
+                Some(ReadWriteRequestMessageMode::Octet),
+            "mail" | "MAIL" | "Mail" => Some(ReadWriteRequestMessageMode::Mail),
+            _ => None
+        }
+    }
+}
+
 pub trait Message {
     fn opcode(&self) -> MessageOpcode;
 }
