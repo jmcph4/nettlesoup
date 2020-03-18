@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use serde::{Serialize, Deserialize};
 
 pub type MessageOpcode = u16;
@@ -11,13 +12,26 @@ pub enum MessageType {
     Error
 }
 
-fn msg_type_to_opcode(msg_type: MessageType) -> MessageOpcode {
-    match msg_type {
-        MessageType::ReadRequest => 0x01,
-        MessageType::WriteRequest => 0x02,
-        MessageType::Data => 0x03,
-        MessageType::Acknowledgement => 0x04,
-        MessageType::Error => 0x05
+impl MessageType {
+    fn to_opcode(msg_type: Self) -> MessageOpcode {
+        match msg_type {
+            MessageType::ReadRequest => 0x01,
+            MessageType::WriteRequest => 0x02,
+            MessageType::Data => 0x03,
+            MessageType::Acknowledgement => 0x04,
+            MessageType::Error => 0x05
+        }
+    }
+
+    fn from_opcode(opcode: MessageOpcode) -> Option<Self> {
+        match opcode {
+            0x01 => Some(MessageType::ReadRequest),
+            0x02 => Some(MessageType::WriteRequest),
+            0x03 => Some(MessageType::Data),
+            0x04 => Some(MessageType::Acknowledgement),
+            0x05 => Some(MessageType::Error),
+            _ => None
+        }
     }
 }
 
@@ -61,7 +75,7 @@ impl ReadRequestMessage {
 
 impl Message for ReadRequestMessage {
     fn opcode(&self) -> MessageOpcode {
-        msg_type_to_opcode(self.msg_type)
+        MessageType::to_opcode(self.msg_type)
     }
 }
 
@@ -94,7 +108,7 @@ impl WriteRequestMessage {
 
 impl Message for WriteRequestMessage {
     fn opcode(&self) -> MessageOpcode {
-        msg_type_to_opcode(self.msg_type)
+        MessageType::to_opcode(self.msg_type)
     }
 }
 
@@ -129,7 +143,7 @@ impl DataMessage {
 
 impl Message for DataMessage {
     fn opcode(&self) -> MessageOpcode {
-        msg_type_to_opcode(self.msg_type)
+        MessageType::to_opcode(self.msg_type)
     }
 }
 
@@ -156,7 +170,7 @@ impl AcknowledgementMessage {
 
 impl Message for AcknowledgementMessage {
     fn opcode(&self) -> MessageOpcode {
-        msg_type_to_opcode(self.msg_type)
+        MessageType::to_opcode(self.msg_type)
     }
 }
 
@@ -191,7 +205,7 @@ impl ErrorMessage {
 
 impl Message for ErrorMessage {
     fn opcode(&self) -> MessageOpcode {
-        msg_type_to_opcode(self.msg_type)
+        MessageType::to_opcode(self.msg_type)
     }
 }
 
