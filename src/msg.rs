@@ -1,6 +1,6 @@
 pub type MessageOpcode = u16;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum MessageType {
     ReadRequest,
     WriteRequest,
@@ -19,7 +19,7 @@ fn msg_type_to_opcode(msg_type: MessageType) -> MessageOpcode {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum ReadWriteRequestMessageMode {
     NetAscii,
     Octet,
@@ -31,6 +31,8 @@ pub trait Message {
 }
 
 /****************************** READ REQUEST **********************************/
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReadRequestMessage {
     msg_type: MessageType,
     filename: String,
@@ -63,6 +65,7 @@ impl Message for ReadRequestMessage {
 
 /****************************** WRITE REQUEST  ********************************/
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WriteRequestMessage {
     msg_type: MessageType,
     filename: String,
@@ -97,6 +100,7 @@ impl Message for WriteRequestMessage {
 
 pub type DataMessageBlockNumber = u16;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DataMessage {
     msg_type: MessageType,
     block_num: DataMessageBlockNumber,
@@ -129,6 +133,7 @@ impl Message for DataMessage {
 
 /****************************** ACKNOWLEDGEMENT *******************************/
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AcknowledgementMessage {
     msg_type: MessageType,
     block_num: DataMessageBlockNumber
@@ -157,6 +162,7 @@ impl Message for AcknowledgementMessage {
 
 pub type ErrorMessageCode = u16;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ErrorMessage {
     msg_type: MessageType,
     code: ErrorMessageCode,
