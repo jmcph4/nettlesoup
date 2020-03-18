@@ -3,8 +3,17 @@ name = "nettlesoup"
 version = "0.0.1"
 authors = ["jmcph4 <jmcph4.github@gmail.com>"]
 edition = "2018"
+default-run = "tftpd"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+[[bin]]
+name = "tftpd"
+path = "src/server/main.rs"
+
+[[bin]]
+name = "tftpclient"
+path = "src/client/main.rs"
 
