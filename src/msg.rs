@@ -64,8 +64,23 @@ impl ReadWriteRequestMessageMode {
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum ParseError {
+    TooShort,
+    TooLong,
+    InvalidOpcode,
+    NoFilename,
+    InvalidFilename,
+    NoMode,
+    InvalidMode,
+    InvalidErrorCode,
+    NoErrorMessage    
+}
+
 pub trait Message {
     fn opcode(&self) -> MessageOpcode;
+    fn to_bytes(&self) -> Vec<u8>;
+    fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> where Self: Sized;
 }
 
 /****************************** READ REQUEST **********************************/
