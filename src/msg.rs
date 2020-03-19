@@ -1,4 +1,7 @@
 #![allow(dead_code)]
+use std::fmt;
+
+use thiserror::Error;
 use serde::{Serialize, Deserialize};
 
 pub type MessageOpcode = u16;
@@ -64,7 +67,7 @@ impl ReadWriteRequestMessageMode {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize, Error)]
 pub enum ParseError {
     TooShort,
     TooLong,
@@ -74,13 +77,44 @@ pub enum ParseError {
     NoMode,
     InvalidMode,
     InvalidErrorCode,
-    NoErrorMessage    
+    NoErrorMessage,
+    InvalidErrorMessage 
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let msg: &str = match self {
+            ParseError::TooShort => "Specified message contains too little \
+                 bytes for its message type",
+            ParseError::TooLong => "Specified message contains too many bytes \
+                 for its message type",
+            ParseError::InvalidOpcode => "Specified message has an invalid \
+                 opcode (either unknown or mismatched for its message type)",
+            ParseError::NoFilename => "Specified message lacks a filename when \
+                 it should have one",
+            ParseError::InvalidFilename => "Specified message has an invalid \
+                 filename (likely improperly terminated or contains forbidden \
+                 characters)",
+            ParseError::NoMode => "Specified message lacks a mode string when \
+                 it should have one",
+            ParseError::InvalidMode => "Specified message has an invalid mode \
+                 string (likely improperly terminated or contains forbidden \
+                 characters)",
+            ParseError::InvalidErrorCode => "Specified message has an invalid \
+                 error code",
+            ParseError::NoErrorMessage => "Specified message lacks an error \
+                 message string when it should have one",
+            ParseError::InvalidErrorMessage => "Specified message has an  \
+                invalid error message string (likely improperly terminated \
+                 or contains forbidden characters)"
+        };
+
+        write!(f, "{}", msg)
+    }
 }
 
 pub trait Message {
     fn opcode(&self) -> MessageOpcode;
-    fn to_bytes(&self) -> Vec<u8>;
-    fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> where Self: Sized;
 }
 
 /****************************** READ REQUEST **********************************/
