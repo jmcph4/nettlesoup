@@ -534,11 +534,51 @@ impl Message for AcknowledgementMessage {
     }
 
     fn to_bytes(&self) -> Vec<u8> {
-        unimplemented!()
+        let mut bytes: Vec<u8> = Vec::new();
+
+        /* opcode */
+        bytes.extend_from_slice(
+            &MessageType::to_opcode(self.msg_type).to_be_bytes());
+
+        /* block number */
+        bytes.extend_from_slice(&self.block_num.to_be_bytes());
+        
+        bytes
     }
 
     fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> {
-        unimplemented!()
+        if bytes.len() < 4 { /* bounds check */
+            return Err(ParseError::TooShort);
+        }
+
+        if bytes.len() > 4 { /* bounds check */
+            return Err(ParseError::TooLong);
+        }
+
+        /* parse opcode */
+        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+                                            bytes[1] as u16; 
+
+        /* this field is implicit in all message types, but we still need to
+            validate the correctness of it in the wire format */
+        let msg_type: Option<MessageType> = MessageType::from_opcode(opcode);
+
+        if msg_type.is_none() { /* check for failure of our helper */
+            return Err(ParseError::InvalidOpcode);
+        }
+
+        /* check the opcode actually matches the message type */
+        if msg_type.unwrap() != MessageType::Acknowledgement {
+            return Err(ParseError::InvalidOpcode);
+        }
+       
+        let block_num: DataMessageBlockNumber = ((bytes[2] as u16) << 8) |
+                                                    bytes[3] as u16;
+
+        let message: AcknowledgementMessage =
+            AcknowledgementMessage::new(block_num);
+    
+        Ok(message)
     }
 }
 
@@ -577,7 +617,7 @@ impl Message for ErrorMessage {
     }
 
     fn to_bytes(&self) -> Vec<u8> {
-    unimplemented!()
+        unimplemented!()
     }
 
     fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> {
