@@ -115,6 +115,8 @@ impl fmt::Display for ParseError {
 
 pub trait Message {
     fn opcode(&self) -> MessageOpcode;
+    fn to_bytes(&self) -> Vec<u8>;
+    fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> where Self: Sized;
 }
 
 /****************************** READ REQUEST **********************************/
@@ -147,6 +149,96 @@ impl ReadRequestMessage {
 impl Message for ReadRequestMessage {
     fn opcode(&self) -> MessageOpcode {
         MessageType::to_opcode(self.msg_type)
+    }
+
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = Vec::new();
+
+        /* opcode */
+        bytes.extend_from_slice(
+            &MessageType::to_opcode(self.msg_type).to_be_bytes());
+        
+        /* filename string */
+        for byte in self.filename.bytes() {
+            bytes.push(byte);
+        }
+
+        bytes.push('\0' as u8); /* null terminate */
+
+        /* request mode */
+        for ch in ReadWriteRequestMessageMode::to_string(self.mode).bytes() {
+            bytes.push(ch);
+        }
+
+        bytes
+    }
+
+    fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> {
+        if bytes.len() < 5 { /* bounds check */
+            return Err(ParseError::TooShort);
+        }
+
+        /* parse opcode */
+        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+                                            bytes[1] as u16; 
+
+        /* this field is implicit in all message types, but we still need to
+            validate the correctness of it in the wire format */
+        let msg_type: Option<MessageType> = MessageType::from_opcode(opcode);
+
+        if msg_type.is_none() { /* check for failure of our helper */
+            return Err(ParseError::InvalidOpcode);
+        }
+
+        /* parse filename */
+        let mut filename: String = String::new();
+
+        let mut c: usize = 2;
+        let mut curr_char: char = bytes[c] as char;
+
+        /* iterate over bytes, grabbing characters until null byte (we can do
+            this because of the encoding of TFTP strings) */
+        while curr_char != '\0' {
+            if c >= bytes.len() { /* bounds check */
+                return Err(ParseError::InvalidFilename);
+            }
+
+            curr_char = bytes[c] as char;
+            filename.push(curr_char);
+            c += 1;
+        }
+
+        /* parse mode */
+        if c >= bytes.len() { /* bounds check */
+            return Err(ParseError::NoMode);
+        }
+        
+        let mut mode_string: String = String::new();
+
+        /* iterate over bytes, grabbing characters until null byte (we can do
+            this because of the encoding of TFTP strings) */
+        while curr_char != '\0' {
+            if c >= bytes.len() { /* bounds check */
+                return Err(ParseError::InvalidMode);
+            }
+
+            curr_char = bytes[c] as char;
+            mode_string.push(curr_char);
+            c += 1;
+        }
+    
+        let mode: Option<ReadWriteRequestMessageMode> =
+            ReadWriteRequestMessageMode::from_string(mode_string);  
+
+        if mode.is_none() { /* check for failure of our helper */
+            return Err(ParseError::InvalidMode);
+        }
+        
+        /* actually construct the message object */ 
+        let message: ReadRequestMessage =
+            ReadRequestMessage::new(filename, mode.unwrap());
+
+        Ok(message)
     }
 }
 
