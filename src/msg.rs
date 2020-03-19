@@ -343,11 +343,11 @@ impl Message for WriteRequestMessage {
         if msg_type.unwrap() != MessageType::WriteRequest {
             return Err(ParseError::InvalidOpcode);
         }
-
+        
         /* parse filename */
         let mut filename: String = String::new();
 
-        let mut c: usize = 2;
+        let mut c: usize = 1;
         let mut curr_char: char = bytes[c] as char;
 
         /* iterate over bytes, grabbing characters until null byte (we can do
@@ -357,33 +357,54 @@ impl Message for WriteRequestMessage {
                 return Err(ParseError::InvalidFilename);
             }
 
+            c += 1;
             curr_char = bytes[c] as char;
             filename.push(curr_char);
-            c += 1;
         }
 
         /* parse mode */
         if c >= bytes.len() { /* bounds check */
             return Err(ParseError::NoMode);
         }
-        
-        let mut mode_string: String = String::new();
+       
+        /* adjust for null byte */
+        if c + 1 < bytes.len() {
+            curr_char = bytes[c+1] as char;
+        }
 
+        let mut mode_string: String = String::new();
+       
         /* iterate over bytes, grabbing characters until null byte (we can do
             this because of the encoding of TFTP strings) */
         while curr_char != '\0' {
             if c >= bytes.len() { /* bounds check */
-                return Err(ParseError::InvalidMode);
+                if mode_string.len() == 0 {
+                    return Err(ParseError::NoMode);
+                } else {
+                    return Err(ParseError::InvalidMode);
+                }
             }
 
+            c += 1;
             curr_char = bytes[c] as char;
             mode_string.push(curr_char);
-            c += 1;
         }
-    
-        let mode: Option<ReadWriteRequestMessageMode> =
-            ReadWriteRequestMessageMode::from_string(mode_string);  
+   
+        /* strip trailing null bytes from both filename and mode string */
+        filename.pop();
+        mode_string.pop();
 
+        if filename.len() == 0 {
+            return Err(ParseError::NoFilename);
+        }
+
+        if mode_string.len() == 0 {
+            return Err(ParseError::NoMode);
+        }
+ 
+        let mode: Option<ReadWriteRequestMessageMode> =
+            ReadWriteRequestMessageMode::from_string(mode_string);
+        
         if mode.is_none() { /* check for failure of our helper */
             return Err(ParseError::InvalidMode);
         }
