@@ -6,7 +6,7 @@ use crate::msg;
 pub type TID = u16;
 pub type SequenceNumber = u16;
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Connection {
     local_tid: TID,                         /* local TID (source port) */
     remote_tid: TID,                        /* remote TID (destination port) */

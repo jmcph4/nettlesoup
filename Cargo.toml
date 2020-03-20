@@ -10,6 +10,7 @@ default-run = "tftpd"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
+clap = { git = "https://github.com/clap-rs/clap/" }
 
 [[bin]]
 name = "tftpd"
