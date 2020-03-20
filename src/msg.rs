@@ -179,7 +179,7 @@ impl Message for ReadRequestMessage {
         }
 
         /* parse opcode */
-        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+        let opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
                                             bytes[1] as u16; 
 
         /* this field is implicit in all message types, but we still need to
@@ -328,7 +328,7 @@ impl Message for WriteRequestMessage {
         }
 
         /* parse opcode */
-        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+        let opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
                                             bytes[1] as u16; 
 
         /* this field is implicit in all message types, but we still need to
@@ -477,7 +477,7 @@ impl Message for DataMessage {
         }
 
         /* parse opcode */
-        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+        let opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
                                             bytes[1] as u16; 
 
         /* this field is implicit in all message types, but we still need to
@@ -556,7 +556,7 @@ impl Message for AcknowledgementMessage {
         }
 
         /* parse opcode */
-        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+        let opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
                                             bytes[1] as u16; 
 
         /* this field is implicit in all message types, but we still need to
@@ -642,7 +642,7 @@ impl Message for ErrorMessage {
         }
 
         /* parse opcode */
-        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+        let opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
                                             bytes[1] as u16; 
 
         /* this field is implicit in all message types, but we still need to
