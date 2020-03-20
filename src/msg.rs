@@ -696,3 +696,14 @@ impl Message for ErrorMessage {
     }
 }
 
+/******************************************************************************/
+
+#[derive(Copy, Clone)]
+pub enum AnyMessage {
+    Rrq(ReadRequestMessage),
+    Wrq(WriteRequestMessage),
+    Data(DataMessage),
+    Ack(AcknowledgementMessage),
+    Error(ErrorMessage)
+}
+
