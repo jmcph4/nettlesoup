@@ -698,7 +698,7 @@ impl Message for ErrorMessage {
 
 /******************************************************************************/
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AnyMessage {
     Rrq(ReadRequestMessage),
     Wrq(WriteRequestMessage),
