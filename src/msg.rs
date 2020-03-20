@@ -617,11 +617,82 @@ impl Message for ErrorMessage {
     }
 
     fn to_bytes(&self) -> Vec<u8> {
-        unimplemented!()
+        let mut bytes: Vec<u8> = Vec::new();
+
+        /* opcode */
+        bytes.extend_from_slice(
+            &MessageType::to_opcode(self.msg_type).to_be_bytes());
+        
+        /* error code */
+        bytes.extend_from_slice(&self.code.to_be_bytes());
+
+        /* error message string */
+        for byte in self.message.bytes() {
+            bytes.push(byte);
+        }
+
+        bytes.push('\0' as u8); /* null terminate */
+
+        bytes
     }
 
     fn from_bytes(bytes: Vec<u8>) -> Result<Self, ParseError> {
-        unimplemented!()
+        if bytes.len() < 5 { /* bounds check */
+            return Err(ParseError::TooShort);
+        }
+
+        /* parse opcode */
+        let mut opcode: MessageOpcode = ((bytes[0] as u16) << 8) |
+                                            bytes[1] as u16; 
+
+        /* this field is implicit in all message types, but we still need to
+            validate the correctness of it in the wire format */
+        let msg_type: Option<MessageType> = MessageType::from_opcode(opcode);
+
+        if msg_type.is_none() { /* check for failure of our helper */
+            return Err(ParseError::InvalidOpcode);
+        }
+
+        /* check the opcode actually matches the message type */
+        if msg_type.unwrap() != MessageType::Error {
+            return Err(ParseError::InvalidOpcode);
+        }
+        
+        /* parse error code */
+        let error_code: ErrorMessageCode = ((bytes[2] as u16) << 8) |
+                                                bytes[3] as u16;
+
+        /* parse error message */
+        let mut error_msg: String = String::new();
+        let mut c: usize = 3;
+        let mut curr_char: char = bytes[c] as char;
+
+        if c + 2 >= bytes.len() { /* bounds check */
+            return Err(ParseError::NoErrorMessage);
+        }
+
+        /* iterate over bytes, grabbing characters until null byte (we can do
+            this because of the encoding of TFTP strings) */
+        while curr_char != '\0' {
+            if c >= bytes.len() - 1 { /* bounds check */
+                return Err(ParseError::InvalidErrorMessage);
+            }
+            
+            c += 1;
+            curr_char = bytes[c] as char;
+            error_msg.push(curr_char);
+        }
+
+        error_msg.pop();
+
+        if error_msg.len() == 0 { /* bounds check */
+            return Err(ParseError::NoErrorMessage);
+        }
+
+        /* actually construct message object */
+        let message: ErrorMessage = ErrorMessage::new(error_code, error_msg);
+
+        Ok(message)
     }
 }
 
